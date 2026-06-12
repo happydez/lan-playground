@@ -1,0 +1,16 @@
+---
+- name: Create database users.
+  community.mysql.mysql_user:
+    name: "{{ item.0.db_user }}"
+    password: "{{ item.0.db_password }}"
+    host: "{{ item.1 }}"
+    plugin: mysql_native_password
+    priv: "{{ item.0.db_name }}.*:ALL"
+    state: present
+    update_password: always
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop: "{{ mysql_databases | product(mysql_user_hosts) | list }}"
+  loop_control:
+    label: "{{ item.0.db_user }}@{{ item.1 }} -> {{ item.0.db_name }}"
+  no_log: true

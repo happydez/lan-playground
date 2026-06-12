@@ -1,0 +1,16 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: deploy_recompile
+  author: happydez
+  description: Sync local cstrike/fastdl trees to the server, recompile plugins and reload the map.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - srcds
+    - deploy

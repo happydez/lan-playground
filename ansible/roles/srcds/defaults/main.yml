@@ -1,0 +1,66 @@
+---
+srcds_app_id: 232330
+srcds_user: steam
+srcds_steam_home: /home/steam
+srcds_servers_dir: servers
+srcds_server_name: lan-bhop-server
+srcds_server_dir: "{{ srcds_steam_home }}/{{ srcds_servers_dir }}/{{ srcds_server_name }}"
+srcds_game_dir: "{{ srcds_server_dir }}/cstrike"
+srcds_steamcmd_dir: "{{ srcds_steam_home }}/steamcmd"
+srcds_steamcmd_url: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+
+# MetaMod / SourceMod / TickrateEnabler
+metamod_url: "https://github.com/alliedmodders/metamod-source/releases/download/1.12.0.1224/mmsource-1.12.0-git1224-linux.tar.gz"
+sourcemod_url: "https://github.com/alliedmodders/sourcemod/releases/download/1.12.0.7230/sourcemod-1.12.0-git7230-linux.tar.gz"
+tickrate_zip_url: "https://github.com/rumourA/TickrateEnabler/releases/download/1.1/TickrateEnabler-all.zip"
+tickrate_cpp_url: "https://raw.githubusercontent.com/rumourA/TickrateEnabler/main/main.cpp"
+
+# server.cfg
+srcds_hostname: "Bhop Server"
+srcds_rcon_password: "RCON123456789"
+srcds_sv_password: ""
+srcds_sv_region: 255
+srcds_sw_gamedesc: "LAN"
+srcds_fastdl_prefix: "fastdl/lan/bhop"
+srcds_fastdl_url: "http://{{ ansible_host | default(ansible_default_ipv4.address) }}/{{ srcds_fastdl_prefix }}"
+
+# start.sh
+srcds_tickrate: 100
+srcds_default_map: "bhop_stref_universe"
+srcds_maxplayers: 24
+srcds_port: 27015
+srcds_bind_ip: "0.0.0.0"
+srcds_gslt_token: ""
+
+# game log rotation (cstrike/logs is never rotated by srcds itself)
+srcds_logrotate_frequency: weekly
+srcds_logrotate_keep: 4
+
+# systemd unit variables
+srcds_nice: -15
+srcds_io_priority: 1
+srcds_memory_max: "32G"
+
+# maps (uploaded from roles/srcds/files/maps/<name>.bsp)
+srcds_maps:
+  - bhop_stref_universe
+
+# admins
+sm_configs_dir: "{{ srcds_game_dir }}/addons/sourcemod/configs"
+
+# Admin groups: name, flags, immunity
+# Flags: a=reservation, b=admin, c=kick, d=ban, e=unban, f=slay,
+#        g=changemap, h=cvar, i=cfg, j=chat, k=vote, l=password,
+#        m=rcon, n=cheats, z=root
+admin_groups:
+  - name: Owners
+    flags: z
+    immunity: 100
+  - name: Admins
+    flags: abcdefgijmn
+    immunity: 50
+
+# Admins. Each entry: { steamid, group } or { steamid, immunity, flags }
+# steamid can be STEAM_X:Y:Z or SteamID64
+admins:
+  - { steamid: "STEAM_0:0:12345", group: "Owners" }

@@ -1,0 +1,6 @@
+---
+- name: Set CPU governor (best-effort, ignored on virtualised hosts without cpufreq).
+  ansible.builtin.command: "cpupower frequency-set -g {{ common_cpu_governor }}"
+  register: common_cpupower_result
+  changed_when: common_cpupower_result.rc == 0
+  failed_when: false

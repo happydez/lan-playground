@@ -1,0 +1,54 @@
+---
+- name: Generate server.cfg.
+  ansible.builtin.template:
+    src: server.cfg.j2
+    dest: "{{ srcds_game_dir }}/cfg/server.cfg"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0644"
+  notify: Restart srcds
+
+- name: Generate start.sh.
+  ansible.builtin.template:
+    src: start.sh.j2
+    dest: "{{ srcds_server_dir }}/start.sh"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0755"
+  notify: Restart srcds
+
+- name: Install systemd unit.
+  ansible.builtin.template:
+    src: srcds.service.j2
+    dest: "/etc/systemd/system/{{ srcds_server_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart srcds
+
+- name: Enable srcds service.
+  ansible.builtin.systemd:
+    name: "{{ srcds_server_name }}"
+    enabled: true
+    daemon_reload: true
+
+- name: Install logrotate config for game logs.
+  ansible.builtin.copy:
+    dest: "/etc/logrotate.d/srcds-{{ srcds_server_name }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by Ansible srcds role - do not edit by hand.
+      {{ srcds_game_dir }}/logs/*.log {
+          {{ srcds_logrotate_frequency }}
+          rotate {{ srcds_logrotate_keep }}
+          missingok
+          notifempty
+          compress
+          delaycompress
+          copytruncate
+          su {{ srcds_user }} {{ srcds_user }}
+      }

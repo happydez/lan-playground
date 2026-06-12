@@ -1,0 +1,31 @@
+---
+- name: Include OS-specific variables.
+  ansible.builtin.include_vars: "{{ lookup('first_found', nginx__vars_params) }}"
+  vars:
+    nginx__vars_params:
+      files:
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Define nginx_packages.
+  ansible.builtin.set_fact:
+    nginx_packages: "{{ __nginx_packages | list }}"
+  when: nginx_packages is not defined
+
+- name: Define nginx_sites_available_dir.
+  ansible.builtin.set_fact:
+    nginx_sites_available_dir: "{{ __nginx_sites_available_dir }}"
+  when: nginx_sites_available_dir is not defined
+
+- name: Define nginx_sites_enabled_dir.
+  ansible.builtin.set_fact:
+    nginx_sites_enabled_dir: "{{ __nginx_sites_enabled_dir }}"
+  when: nginx_sites_enabled_dir is not defined
+
+- name: Define nginx_conf_d_dir.
+  ansible.builtin.set_fact:
+    nginx_conf_d_dir: "{{ __nginx_conf_d_dir }}"
+  when: nginx_conf_d_dir is not defined

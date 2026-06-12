@@ -1,0 +1,6 @@
+id_rsa*
+.vagrant/
+*.retry
+
+*.bsp
+!bhop_stref_universe.bsp

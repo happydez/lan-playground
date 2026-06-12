@@ -1,0 +1,75 @@
+---
+- name: "[{{ server.name }}] MySQL"
+  ansible.builtin.include_role:
+    name: mysql
+    apply:
+      tags: [mysql]
+  vars:
+    mysql_databases:
+      - db_name:     "{{ server.mysql_timer_db }}"
+        db_user:     "{{ server.mysql_timer_user }}"
+        db_password: "{{ server.mysql_timer_password }}"
+      - db_name:     "{{ server.mysql_flags_db }}"
+        db_user:     "{{ server.mysql_flags_user }}"
+        db_password: "{{ server.mysql_flags_password }}"
+  tags: [mysql]
+
+- name: "[{{ server.name }}] srcds"
+  ansible.builtin.include_role:
+    name: srcds
+    apply:
+      tags: [srcds]
+  vars:
+    srcds_server_name:    "{{ server.name }}"
+    srcds_servers_dir:    "{{ servers_dir }}"
+    srcds_port:           "{{ server.port | default('27015') }}"
+    srcds_hostname:       "{{ server.hostname }}"
+    srcds_rcon_password:  "{{ server.rcon_password }}"
+    srcds_sv_password:    "{{ server.sv_password | default('') }}"
+    srcds_default_map:    "{{ server.server_default_map }}"
+    srcds_gslt_token:     "{{ server.gslt_token | default('') }}"
+    srcds_sw_gamedesc:    "{{ server.sw_gamedesc | default('LAN') }}"
+    srcds_fastdl_prefix:  "{{ server.nginx_fastdl_prefix }}"
+  tags: [srcds]
+
+- name: "[{{ server.name }}] lan"
+  ansible.builtin.include_role:
+    name: lan
+    apply:
+      tags: [lan]
+  vars:
+    srcds_server_name:        "{{ server.name }}"
+    srcds_servers_dir:        "{{ servers_dir }}"
+    mysql_timer_db:           "{{ server.mysql_timer_db }}"
+    mysql_timer_user:         "{{ server.mysql_timer_user }}"
+    mysql_timer_db_password:  "{{ server.mysql_timer_password }}"
+    mysql_flags_db:           "{{ server.mysql_flags_db }}"
+    mysql_flags_user:         "{{ server.mysql_flags_user }}"
+    mysql_flags_db_password:  "{{ server.mysql_flags_password }}"
+  tags: [lan]
+
+- name: "[{{ server.name }}] Nginx fastdl"
+  ansible.builtin.include_role:
+    name: nginx
+    apply:
+      tags: [nginx, fastdl]
+  vars:
+    srcds_servers_dir: "{{ servers_dir }}"
+    fastdl_servers:
+      - name:          "{{ server.name }}"
+        fastdl_prefix: "{{ server.nginx_fastdl_prefix }}"
+  tags: [nginx, fastdl]
+
+- name: "[{{ server.name }}] deploy_recompile"
+  ansible.builtin.include_role:
+    name: deploy_recompile
+    apply:
+      tags: [deploy, recompile]
+  vars:
+    recompile_server_name:   "{{ server.name }}"
+    recompile_servers_dir:   "{{ servers_dir }}"
+    recompile_server_port:   "{{ server.port | default('27015') }}"
+    recompile_rcon_password: "{{ server.rcon_password }}"
+    recompile_default_map:   "{{ server.server_default_map }}"
+    recompile_fastdl_prefix: "{{ server.nginx_fastdl_prefix }}"
+  tags: [deploy, recompile]

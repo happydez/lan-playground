@@ -1,0 +1,50 @@
+server {
+    listen {{ fastdl_listen_port }} default_server;
+    listen [::]:{{ fastdl_listen_port }} default_server;
+    server_name {{ fastdl_server_name }};
+
+    access_log /var/log/nginx/fastdl.access.log;
+    error_log  /var/log/nginx/fastdl.error.log;
+
+    root /var/www/html;
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+{% for entry in fastdl_servers %}
+    location /{{ entry.fastdl_prefix }}/maps/ {
+        alias {{ steam_home }}/{{ srcds_servers_dir }}/{{ entry.name }}/cstrike/maps/;
+        autoindex on;
+        limit_req zone=map_limit burst={{ fastdl_rate_burst }} nodelay;
+    }
+
+    location /{{ entry.fastdl_prefix }}/materials/ {
+        alias {{ steam_home }}/{{ srcds_servers_dir }}/{{ entry.name }}/cstrike/materials/;
+        autoindex on;
+    }
+
+    location /{{ entry.fastdl_prefix }}/models/ {
+        alias {{ steam_home }}/{{ srcds_servers_dir }}/{{ entry.name }}/cstrike/models/;
+        autoindex on;
+    }
+
+    location /{{ entry.fastdl_prefix }}/sound/ {
+        alias {{ steam_home }}/{{ srcds_servers_dir }}/{{ entry.name }}/cstrike/sound/;
+        autoindex on;
+    }
+
+    location /{{ entry.fastdl_prefix }}/motd/ {
+        alias {{ steam_home }}/{{ srcds_servers_dir }}/{{ entry.name }}/fastdl/motd/;
+        autoindex on;
+    }
+
+    location /{{ entry.fastdl_prefix }}/ {
+        return 403;
+    }
+
+{% endfor %}
+}

@@ -1,0 +1,22 @@
+---
+- name: Create steam group.
+  ansible.builtin.group:
+    name: "{{ common_steam_user }}"
+    state: present
+
+- name: Create steam user.
+  ansible.builtin.user:
+    name: "{{ common_steam_user }}"
+    group: "{{ common_steam_user }}"
+    home: "{{ common_steam_home }}"
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: Ensure steam home is readable
+  ansible.builtin.file:
+    path: "{{ common_steam_home }}"
+    state: directory
+    owner: "{{ common_steam_user }}"
+    group: "{{ common_steam_user }}"
+    mode: "0755"

@@ -1,0 +1,14 @@
+---
+- name: Set system hostname.
+  ansible.builtin.hostname:
+    name: "{{ network_hostname }}"
+  when: network_hostname | length > 0
+  notify: Restart systemd-hostnamed
+
+- name: Ensure /etc/hosts maps the new hostname to 127.0.1.1.
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s+'
+    line: "127.0.1.1\t{{ network_hostname }}"
+    state: present
+  when: network_hostname | length > 0

@@ -1,0 +1,25 @@
+---
+- name: Check if root password is already set.
+  ansible.builtin.command: mysql -u root -e "SELECT 1"
+  register: mysql_root_socket
+  changed_when: false
+  failed_when: false
+
+- name: Set MySQL root password (via socket auth, first time).
+  ansible.builtin.command: >
+    mysql -u root -e
+    "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}';
+    FLUSH PRIVILEGES;"
+  when: mysql_root_socket.rc == 0
+  changed_when: true
+  no_log: true
+
+- name: Set MySQL root password (with current password, idempotent).
+  ansible.builtin.command: >
+    mysql -u root -p{{ mysql_root_password }} -e
+    "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}';
+    FLUSH PRIVILEGES;"
+  when: mysql_root_socket.rc != 0
+  changed_when: false
+  failed_when: false
+  no_log: true

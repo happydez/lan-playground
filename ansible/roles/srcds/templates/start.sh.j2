@@ -1,0 +1,29 @@
+#!/bin/bash
+
+TICKRATE={{ srcds_tickrate }}
+DEFAULT_MAP="{{ srcds_default_map }}"
+MAXPLAYERS={{ srcds_maxplayers }}
+PORT={{ srcds_port }}
+BIND_IP="{{ srcds_bind_ip }}"
+GSLT_TOKEN="{{ srcds_gslt_token }}"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+ARGS=(
+    -game cstrike
+    -console
+    -usercon
+    -norestart
+    -insecure
+    -tickrate "$TICKRATE"
+    +map "$DEFAULT_MAP"
+    -maxplayers "$MAXPLAYERS"
+    -port "$PORT"
+    +clientport $((PORT + 100))
+    +ip "$BIND_IP"
+)
+
+[[ -n "$GSLT_TOKEN" ]] && ARGS+=(+sv_setsteamaccount "$GSLT_TOKEN")
+
+exec ./srcds_run "${ARGS[@]}"

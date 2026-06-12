@@ -1,0 +1,26 @@
+---
+- name: Include OS-specific variables.
+  ansible.builtin.include_vars: "{{ lookup('first_found', mysql__vars_params) }}"
+  vars:
+    mysql__vars_params:
+      files:
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Define mysql_packages.
+  ansible.builtin.set_fact:
+    mysql_packages: "{{ __mysql_packages | list }}"
+  when: mysql_packages is not defined
+
+- name: Define mysql_daemon.
+  ansible.builtin.set_fact:
+    mysql_daemon: "{{ __mysql_daemon }}"
+  when: mysql_daemon is not defined
+
+- name: Define mysql_conf_include_dir.
+  ansible.builtin.set_fact:
+    mysql_conf_include_dir: "{{ __mysql_conf_include_dir }}"
+  when: mysql_conf_include_dir is not defined

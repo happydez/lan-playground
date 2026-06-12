@@ -1,0 +1,22 @@
+---
+- name: Ensure /etc/systemd/journald.conf.d exists.
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Limit journald disk usage.
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/10-lan-limits.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by Ansible common role - do not edit by hand.
+      # srcds logs its whole console to the journal, keep it bounded.
+      [Journal]
+      SystemMaxUse={{ common_journald_max_use }}
+      MaxRetentionSec={{ common_journald_max_retention }}
+  notify: Restart systemd-journald

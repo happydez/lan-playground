@@ -1,0 +1,91 @@
+---
+- name: Check if ClosestPos already built.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/closestpos.ext.so"
+  register: lan_closestpos_check
+
+- name: Build and install ClosestPos.
+  when: not lan_closestpos_check.stat.exists
+  block:
+    - name: Clone hl2sdk-css.
+      ansible.builtin.git:
+        repo: https://github.com/alliedmodders/hl2sdk.git
+        dest: "{{ srcds_work_dir }}/hl2sdk-css"
+        version: css
+        depth: 1
+
+    - name: Clone ambuild.
+      ansible.builtin.git:
+        repo: https://github.com/alliedmodders/ambuild.git
+        dest: "{{ srcds_work_dir }}/ambuild"
+        depth: 1
+
+    - name: Install ambuild via setup.py.
+      ansible.builtin.command:
+        cmd: python3 setup.py install
+        chdir: "{{ srcds_work_dir }}/ambuild"
+        creates: "{{ lan_ambuild_creates }}"
+
+    - name: Clone metamod-source.
+      ansible.builtin.git:
+        repo: https://github.com/alliedmodders/metamod-source.git
+        dest: "{{ srcds_work_dir }}/metamod-source"
+        version: "{{ lan_closestpos_mm_branch }}"
+        depth: 1
+        recursive: true
+
+    - name: Configure metamod-source.
+      ansible.builtin.command:
+        cmd: python3 configure.py
+        chdir: "{{ srcds_work_dir }}/metamod-source"
+        creates: "{{ srcds_work_dir }}/metamod-source/build"
+
+    - name: Clone sourcemod (for ClosestPos build deps).
+      ansible.builtin.git:
+        repo: https://github.com/alliedmodders/sourcemod.git
+        dest: "{{ srcds_work_dir }}/sourcemod"
+        version: "{{ lan_closestpos_sm_branch }}"
+        depth: 1
+        recursive: true
+
+    - name: Configure sourcemod.
+      ansible.builtin.command:
+        cmd: python3 configure.py --no-mysql
+        chdir: "{{ srcds_work_dir }}/sourcemod"
+        creates: "{{ srcds_work_dir }}/sourcemod/build"
+
+    - name: Clone sm_closestpos.
+      ansible.builtin.git:
+        repo: https://github.com/rtldg/sm_closestpos.git
+        dest: "{{ srcds_work_dir }}/sm_closestpos"
+        depth: 1
+        recursive: true
+
+    - name: Copy sm_closestpos includes to server.
+      ansible.builtin.shell: |
+        [ -d "{{ srcds_work_dir }}/sm_closestpos/pawn/scripting/include" ] && cp -r {{ srcds_work_dir }}/sm_closestpos/pawn/scripting/include/* {{ sm_include_dir }}/ || true
+      changed_when: true
+
+    - name: Configure sm_closestpos.
+      ansible.builtin.shell: |
+        mkdir -p build
+        cd build
+        CC=gcc CXX=g++ python3 ../configure.py --enable-optimize
+      args:
+        chdir: "{{ srcds_work_dir }}/sm_closestpos"
+        creates: "{{ srcds_work_dir }}/sm_closestpos/build/Makefile"
+
+    - name: Build sm_closestpos with ambuild.
+      ansible.builtin.command:
+        cmd: ambuild
+        chdir: "{{ srcds_work_dir }}/sm_closestpos/build"
+        creates: "{{ srcds_work_dir }}/sm_closestpos/build/closestpos.ext/closestpos.ext.so"
+
+    - name: Install closestpos.ext.so.
+      ansible.builtin.copy:
+        src: "{{ srcds_work_dir }}/sm_closestpos/build/closestpos.ext/closestpos.ext.so"
+        dest: "{{ sm_extensions_dir }}/closestpos.ext.so"
+        remote_src: true
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+        mode: "0755"

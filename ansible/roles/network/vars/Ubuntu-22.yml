@@ -1,0 +1,3 @@
+---
+# On Debian/Ubuntu the OpenSSH service is "ssh"; on RedHat it is "sshd".
+__network_ssh_service: ssh

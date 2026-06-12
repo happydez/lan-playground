@@ -1,0 +1,12 @@
+---
+- name: Create databases.
+  community.mysql.mysql_db:
+    name: "{{ item.db_name }}"
+    state: present
+    encoding: "{{ mysql_db_encoding }}"
+    collation: "{{ mysql_db_collation }}"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop: "{{ mysql_databases }}"
+  loop_control:
+    label: "{{ item.db_name }}"

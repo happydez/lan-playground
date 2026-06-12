@@ -1,0 +1,69 @@
+---
+- name: "[{{ plugin.name }}] Check if installed"
+  ansible.builtin.stat:
+    path: "{{ plugin.check_path | default(sm_plugins_dir ~ '/' ~ plugin.smx | default('') ~ '.smx') }}"
+  register: lan_plugin_check
+
+- name: "[{{ plugin.name }}] Install"
+  when: not lan_plugin_check.stat.exists
+  block:
+    - name: "[{{ plugin.name }}] Clone repositories"
+      ansible.builtin.git:
+        repo: "{{ repo.url }}"
+        dest: "{{ srcds_work_dir }}/{{ repo.dest }}"
+        version: "{{ repo.version | default(omit) }}"
+        depth: 1
+      loop: "{{ plugin.repos | default([]) }}"
+      loop_control:
+        loop_var: repo
+        label: "{{ repo.url }}"
+
+    - name: "[{{ plugin.name }}] Download sources"
+      ansible.builtin.get_url:
+        url: "{{ dl.url }}"
+        dest: "{{ dl.dest }}"
+        mode: "0644"
+        timeout: 30
+      loop: "{{ plugin.downloads | default([]) }}"
+      loop_control:
+        loop_var: dl
+        label: "{{ dl.url }}"
+
+    - name: "[{{ plugin.name }}] Deploy assets & sources"
+      ansible.builtin.copy:
+        src: "{{ srcds_work_dir }}/{{ asset.src }}"
+        dest: "{{ asset.dest }}"
+        remote_src: true
+      loop: "{{ plugin.get('copy', []) }}"
+      loop_control:
+        loop_var: asset
+        label: "{{ asset.src }}"
+
+    - name: "[{{ plugin.name }}] Deploy local role files"
+      ansible.builtin.copy:
+        src: "{{ asset.src }}"
+        dest: "{{ asset.dest }}"
+        mode: "0644"
+      loop: "{{ plugin.local_copy | default([]) }}"
+      loop_control:
+        loop_var: asset
+        label: "{{ asset.src }}"
+
+    - name: "[{{ plugin.name }}] Apply source patches"
+      ansible.builtin.replace:
+        path: "{{ patch.path }}"
+        regexp: "{{ patch.regexp }}"
+        replace: "{{ patch.replace }}"
+      loop: "{{ plugin.patches | default([]) }}"
+      loop_control:
+        loop_var: patch
+        label: "{{ patch.path | basename }}"
+
+    - name: "[{{ plugin.name }}] Compile"
+      ansible.builtin.command:
+        cmd: "./spcomp {{ sp_file }} -o {{ sm_plugins_dir }}/{{ sp_file | splitext | first }}.smx"
+        chdir: "{{ lan_sm11_scripting_dir if plugin.compiler | default('sm12') == 'sm11' else sm_scripting_dir }}"
+        creates: "{{ sm_plugins_dir }}/{{ sp_file | splitext | first }}.smx"
+      loop: "{{ plugin.compile | default([]) }}"
+      loop_control:
+        loop_var: sp_file

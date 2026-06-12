@@ -1,0 +1,25 @@
+---
+- name: Fix ownership on game tree (addons, cfg, materials, sound).
+  ansible.builtin.file:
+    path: "{{ srcds_game_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    recurse: true
+  loop:
+    - addons
+    - cfg
+    - materials
+    - sound
+
+- name: Cleanup build workspace.
+  ansible.builtin.file:
+    path: "{{ srcds_work_dir }}"
+    state: absent
+  changed_when: false
+
+- name: Restart server.
+  ansible.builtin.systemd:
+    name: "{{ srcds_server_name }}"
+    enabled: true
+    state: restarted

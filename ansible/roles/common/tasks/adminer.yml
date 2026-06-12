@@ -1,0 +1,27 @@
+---
+- name: Ensure web root exists.
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download Adminer PHP file.
+  ansible.builtin.get_url:
+    url: "https://github.com/vrana/adminer/releases/download/v{{ common_adminer_version }}/adminer-{{ common_adminer_version }}-mysql.php"
+    dest: "/var/www/html/{{ common_adminer_filename }}"
+    owner: www-data
+    group: www-data
+    mode: "0644"
+  register: common_adminer_download
+
+- name: Inform about Adminer URL.
+  ansible.builtin.debug:
+    msg: "Adminer successfully installed! Access it via: http://{{ ansible_host | default(inventory_hostname) }}/{{ common_adminer_filename }}"
+  when: common_adminer_download.changed
+
+- name: Install PHP-FPM for Adminer.
+  ansible.builtin.package:
+    name: "{{ common_php_packages }}"
+    state: present

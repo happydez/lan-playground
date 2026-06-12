@@ -1,0 +1,32 @@
+---
+# firewall
+network_firewall: ufw
+
+ufw_allowed_services:
+  - OpenSSH
+
+ufw_allowed_ports:
+  - { port: 80, proto: tcp }
+  - { port: 443, proto: tcp }
+  - { port: "4000:4100", proto: tcp }
+  - { port: "8000:8100", proto: tcp }
+  - { port: "27000:27100", proto: tcp }
+  - { port: "27000:27100", proto: udp }
+
+ufw_default_incoming_policy: deny
+ufw_default_outgoing_policy: allow
+
+# ssh
+ssh_custom_port: 22
+
+# DNS
+bootstrap_dns_primary:
+  - "1.1.1.1"
+  - "8.8.8.8"
+
+bootstrap_dns_fallback:
+  - "1.0.0.1"
+  - "8.8.4.4"
+
+# hostname
+network_hostname: "srcds-lan"

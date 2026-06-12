@@ -1,0 +1,21 @@
+---
+# Variable configuration.
+- name: Include variable configuration.
+  ansible.builtin.include_tasks: variables.yml
+
+# Setup/install tasks (OS-specific).
+- name: Setup packages (Debian family).
+  ansible.builtin.include_tasks: setup-Debian.yml
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Configure MySQL.
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Secure MySQL root account.
+  ansible.builtin.import_tasks: secure.yml
+
+- name: Create databases.
+  ansible.builtin.import_tasks: databases.yml
+
+- name: Create database users.
+  ansible.builtin.import_tasks: users.yml

@@ -1,0 +1,8 @@
+---
+__mysql_packages:
+  - mysql-server
+  - mysql-client
+  - python3-pymysql
+
+__mysql_daemon: mysql
+__mysql_conf_include_dir: /etc/mysql/conf.d

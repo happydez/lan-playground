@@ -1,0 +1,31 @@
+---
+- name: Enable i386 multiarch.
+  ansible.builtin.command: dpkg --add-architecture i386
+  register: common_arch_result
+  changed_when: "'already foreign architecture' not in common_arch_result.stderr"
+
+- name: Force apt cache update after multiarch change.
+  ansible.builtin.apt:
+    update_cache: true
+  when: common_arch_result.changed
+
+- name: Update apt cache.
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ common_apt_cache_valid_time }}"
+  when: not common_arch_result.changed
+
+- name: Install base tools.
+  ansible.builtin.apt:
+    name: "{{ common_base_packages }}"
+    state: present
+
+- name: Install srcds 32-bit runtime libraries.
+  ansible.builtin.apt:
+    name: "{{ common_srcds_runtime_packages }}"
+    state: present
+
+- name: Install plugin build toolchain.
+  ansible.builtin.apt:
+    name: "{{ common_build_packages }}"
+    state: present

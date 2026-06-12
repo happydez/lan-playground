@@ -1,0 +1,7 @@
+---
+__nginx_packages:
+  - nginx
+
+__nginx_sites_available_dir: /etc/nginx/sites-available
+__nginx_sites_enabled_dir: /etc/nginx/sites-enabled
+__nginx_conf_d_dir: /etc/nginx/conf.d

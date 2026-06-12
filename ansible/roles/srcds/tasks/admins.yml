@@ -1,0 +1,22 @@
+---
+- name: Generate admin_groups.cfg.
+  ansible.builtin.template:
+    src: admin_groups.cfg.j2
+    dest: "{{ sm_configs_dir }}/admin_groups.cfg"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0644"
+
+- name: Generate admins_simple.ini.
+  ansible.builtin.template:
+    src: admins_simple.ini.j2
+    dest: "{{ sm_configs_dir }}/admins_simple.ini"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0644"
+
+- name: Show admin summary.
+  ansible.builtin.debug:
+    msg:
+      - "Groups: {{ admin_groups | map(attribute='name') | list | join(', ') }}"
+      - "Admins loaded: {{ admins | length }}"

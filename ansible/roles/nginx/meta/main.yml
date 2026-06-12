@@ -1,0 +1,17 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: nginx
+  author: happydez
+  description: Nginx FastDL site with rate limiting for srcds servers.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - nginx
+    - fastdl
+    - srcds

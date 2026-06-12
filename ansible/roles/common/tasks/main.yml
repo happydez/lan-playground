@@ -1,0 +1,29 @@
+---
+# Variable configuration.
+- name: Include variable configuration.
+  ansible.builtin.include_tasks: variables.yml
+
+# Setup/install tasks (OS-specific).
+- name: Setup packages (Debian family).
+  ansible.builtin.include_tasks: setup-Debian.yml
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Create steam user.
+  ansible.builtin.import_tasks: users.yml
+
+- name: Install rcon-cli.
+  ansible.builtin.import_tasks: rcon-cli.yml
+
+- name: Apply host tuning.
+  ansible.builtin.import_tasks: tuning.yml
+
+- name: Limit journald disk usage.
+  ansible.builtin.import_tasks: journald.yml
+
+- name: Install Docker.
+  ansible.builtin.import_tasks: docker.yml
+  when: common_docker_enabled
+
+- name: Install Adminer.
+  ansible.builtin.import_tasks: adminer.yml
+  when: common_adminer_enabled

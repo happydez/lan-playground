@@ -1,0 +1,16 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: network
+  author: happydez
+  description: SSH hardening, UFW firewall, DNS and hostname for srcds LAN hosts.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - srcds
+    - lan

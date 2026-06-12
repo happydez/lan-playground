@@ -1,0 +1,24 @@
+---
+- name: Install Docker (Debian/Ubuntu).
+  ansible.builtin.include_tasks: docker-Debian.yml
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Ensure Docker service is enabled and started.
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Ensure containerd service is enabled and started.
+  ansible.builtin.systemd:
+    name: containerd
+    enabled: true
+    state: started
+
+- name: Add specified users to docker group.
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users | unique }}"
+  when: docker_users | length > 0

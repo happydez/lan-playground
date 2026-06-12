@@ -1,0 +1,31 @@
+---
+- name: Include OS-specific variables.
+  ansible.builtin.include_vars: "{{ lookup('first_found', common__vars_params) }}"
+  vars:
+    common__vars_params:
+      files:
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Define common_base_packages.
+  ansible.builtin.set_fact:
+    common_base_packages: "{{ __common_base_packages | list }}"
+  when: common_base_packages is not defined
+
+- name: Define common_srcds_runtime_packages.
+  ansible.builtin.set_fact:
+    common_srcds_runtime_packages: "{{ __common_srcds_runtime_packages | list }}"
+  when: common_srcds_runtime_packages is not defined
+
+- name: Define common_build_packages.
+  ansible.builtin.set_fact:
+    common_build_packages: "{{ __common_build_packages | list }}"
+  when: common_build_packages is not defined
+
+- name: Define common_php_packages.
+  ansible.builtin.set_fact:
+    common_php_packages: "{{ __common_php_packages | list }}"
+  when: common_php_packages is not defined

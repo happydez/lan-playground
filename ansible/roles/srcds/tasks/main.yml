@@ -1,0 +1,26 @@
+---
+- name: Compute srcds CPU affinity (if not already set).
+  ansible.builtin.set_fact:
+    srcds_cpu_affinity: "{{ '0' if ansible_processor_vcpus | int <= 1 else '1' }}"
+  when: srcds_cpu_affinity is not defined
+
+- name: Install SteamCMD.
+  ansible.builtin.import_tasks: steamcmd.yml
+
+- name: Install CS:Source dedicated server.
+  ansible.builtin.import_tasks: install.yml
+
+- name: Install MetaMod and SourceMod.
+  ansible.builtin.import_tasks: addons.yml
+
+- name: Install TickrateEnabler.
+  ansible.builtin.import_tasks: tickrate.yml
+
+- name: Configure srcds (server.cfg, start.sh, systemd unit).
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Upload maps.
+  ansible.builtin.import_tasks: maps.yml
+
+- name: Configure admins.
+  ansible.builtin.import_tasks: admins.yml

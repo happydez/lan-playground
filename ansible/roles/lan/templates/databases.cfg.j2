@@ -1,0 +1,46 @@
+"Databases"
+{
+        "driver_default"                "mysql"
+
+        "default"
+        {
+            "driver"                        "default"
+            "host"                          "localhost"
+            "database"                      "sourcemod"
+            "user"                          "root"
+            "pass"                          ""
+        }
+
+        "storage-local"
+        {
+            "driver"                        "sqlite"
+            "database"                      "sourcemod-local"
+        }
+
+        "clientprefs"
+        {
+            "driver"                        "sqlite"
+            "host"                          "localhost"
+            "database"                      "clientprefs-sqlite"
+            "user"                          "root"
+            "pass"                          ""
+        }
+
+        "shavit"
+        {
+            "driver"                        "mysql"
+            "host"                          "127.0.0.1"
+            "database"                      "{{ mysql_timer_db }}"
+            "user"                          "{{ mysql_timer_user }}"
+            "pass"                          "{{ mysql_timer_db_password }}"
+        }
+
+        "flags-core"
+        {
+            "driver"                        "mysql"
+            "host"                          "127.0.0.1"
+            "database"                      "{{ mysql_flags_db }}"
+            "user"                          "{{ mysql_flags_user }}"
+            "pass"                          "{{ mysql_flags_db_password }}"
+        }
+}

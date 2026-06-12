@@ -1,0 +1,12 @@
+---
+profile: basic
+
+skip_list:
+  - var-naming[no-role-prefix]
+  - name[template]
+  - yaml[colons]
+  - yaml[commas]
+  - yaml[line-length]
+
+exclude_paths:
+  - server/

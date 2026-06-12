@@ -1,0 +1,24 @@
+---
+- name: Ensure spcomp is executable after sync.
+  ansible.builtin.file:
+    path: "{{ recompile_scripting }}/spcomp"
+    mode: "0755"
+    owner: steam
+    group: steam
+  failed_when: false
+
+- name: Recompile specified plugins.
+  ansible.builtin.command:
+    cmd: "./spcomp -i include {{ item }}.sp -o {{ recompile_plugins }}/{{ item }}.smx"
+    chdir: "{{ recompile_scripting }}"
+  become: true
+  become_user: steam
+  loop: "{{ recompile_plugins_list }}"
+  register: recompile_spcomp_result
+  changed_when: recompile_spcomp_result.rc == 0
+
+- name: Remove plugins.
+  ansible.builtin.file:
+    path: "{{ recompile_plugins }}/{{ item }}.smx"
+    state: absent
+  loop: "{{ delete_plugins_list }}"

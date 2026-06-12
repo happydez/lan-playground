@@ -1,0 +1,18 @@
+---
+# ssh
+ssh_custom_port: 22
+
+# DNS
+bootstrap_dns_primary:
+  - "1.1.1.1"
+  - "8.8.8.8"
+
+bootstrap_dns_fallback:
+  - "1.0.0.1"
+  - "8.8.4.4"
+
+# hostname
+network_hostname: "srcds-lan"
+
+# mysql
+mysql_root_password: "p@sSw0rD"

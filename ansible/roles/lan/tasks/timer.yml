@@ -1,0 +1,72 @@
+---
+# bhoptimer
+- name: "[bhoptimer] Check if built"
+  ansible.builtin.stat:
+    path: "{{ sm_plugins_dir }}/shavit-core.smx"
+  register: lan_bhoptimer_check
+
+- name: "[bhoptimer] Install"
+  when: not lan_bhoptimer_check.stat.exists
+  block:
+    - name: "[bhoptimer] Clone repository"
+      ansible.builtin.git:
+        repo: "{{ bhoptimer_repo }}"
+        dest: "{{ bhop_work_dir }}/bhoptimer"
+        depth: 1
+
+    - name: "[bhoptimer] Copy configs"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/addons/sourcemod/configs/"
+        dest: "{{ sm_configs_dir }}/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy gamedata"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/addons/sourcemod/gamedata/"
+        dest: "{{ sm_gamedata_dir }}/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy scripting files (includes & plugins)"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/addons/sourcemod/scripting/"
+        dest: "{{ sm_scripting_dir }}/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy translations"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/addons/sourcemod/translations/"
+        dest: "{{ sm_translations_dir }}/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy stripper configs"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/addons/stripper/"
+        dest: "{{ sm_configs_dir }}/stripper/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy materials"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/materials/"
+        dest: "{{ srcds_game_dir }}/materials/"
+        remote_src: true
+
+    - name: "[bhoptimer] Copy sounds"
+      ansible.builtin.copy:
+        src: "{{ bhop_work_dir }}/bhoptimer/sound/"
+        dest: "{{ srcds_game_dir }}/sound/"
+        remote_src: true
+
+    - name: "[bhoptimer] Find shavit-*.sp source files"
+      ansible.builtin.find:
+        paths: "{{ sm_scripting_dir }}"
+        patterns: "shavit-*.sp"
+      register: lan_shavit_sources
+
+    - name: "[bhoptimer] Compile plugins"
+      ansible.builtin.command:
+        cmd: "./spcomp {{ item.path | basename }} -o {{ sm_plugins_dir }}/{{ item.path | basename | splitext | first }}.smx"
+        chdir: "{{ sm_scripting_dir }}"
+        creates: "{{ sm_plugins_dir }}/{{ item.path | basename | splitext | first }}.smx"
+      loop: "{{ lan_shavit_sources.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"

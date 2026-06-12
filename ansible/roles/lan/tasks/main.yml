@@ -1,0 +1,59 @@
+---
+- name: Include variable configuration.
+  ansible.builtin.include_tasks: variables.yml
+
+- name: Preflight checks and SM directories.
+  ansible.builtin.import_tasks: preflight.yml
+
+- name: Install SourceMod extensions.
+  ansible.builtin.import_tasks: extensions.yml
+
+# Bugfix/utility plugins
+- name: Install SourceMod 1.12 plugins.
+  ansible.builtin.include_tasks:
+    file: plugin.yml
+    apply:
+      become: true
+      become_user: "{{ lan_user }}"
+  loop: "{{ lan_plugins }}"
+  loop_control:
+    loop_var: plugin
+    label: "{{ plugin.name }}"
+
+# Legacy plugins that need the SM 1.11 compiler.
+- name: Install SM 1.11 legacy plugins.
+  ansible.builtin.include_tasks:
+    file: sm11.yml
+    apply:
+      become: true
+      become_user: "{{ lan_user }}"
+
+# ClosestPos extension.
+- name: Build and install ClosestPos.
+  ansible.builtin.import_tasks: closestpos.yml
+
+# bhoptimer.
+- name: Install BhopTimer.
+  ansible.builtin.include_tasks:
+    file: timer.yml
+    apply:
+      become: true
+      become_user: "{{ lan_user }}"
+
+# Extra plugins
+- name: Install extra plugins.
+  ansible.builtin.include_tasks:
+    file: plugin.yml
+    apply:
+      become: true
+      become_user: "{{ lan_user }}"
+  loop: "{{ lan_extra_plugins }}"
+  loop_control:
+    loop_var: plugin
+    label: "{{ plugin.name }}"
+
+- name: Upload configs (whitelist, textcolors, databases.cfg).
+  ansible.builtin.import_tasks: configure.yml
+
+- name: Finalize (ownership, cleanup, restart).
+  ansible.builtin.import_tasks: finalize.yml

@@ -1,0 +1,73 @@
+---
+- name: Ensure server dir exists.
+  ansible.builtin.file:
+    path: "{{ srcds_server_dir }}"
+    state: directory
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0755"
+
+- name: Check if CS:S already installed.
+  ansible.builtin.stat:
+    path: "{{ srcds_server_dir }}/srcds_run"
+  register: srcds_binary
+
+- name: Bootstrap SteamCMD before app install.
+  ansible.builtin.command: "{{ srcds_steamcmd_dir }}/steamcmd.sh +login anonymous +quit"
+  become: true
+  become_user: "{{ srcds_user }}"
+  when: not srcds_binary.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Install CS:Source dedicated server (will take a few minutes).
+  ansible.builtin.command: >
+    {{ srcds_steamcmd_dir }}/steamcmd.sh
+    +force_install_dir {{ srcds_server_dir }}
+    +login anonymous
+    +app_update {{ srcds_app_id }} validate
+    +quit
+  become: true
+  become_user: "{{ srcds_user }}"
+  when: not srcds_binary.stat.exists
+  register: srcds_install_result
+  changed_when: srcds_install_result.rc == 0
+  # SteamCMD sometimes returns rc=6/7 on validate but installs successfully
+  failed_when: srcds_install_result.rc not in [0, 6, 7]
+
+- name: Verify install.
+  ansible.builtin.stat:
+    path: "{{ srcds_server_dir }}/srcds_run"
+  register: srcds_check
+  failed_when: not srcds_check.stat.exists
+
+- name: Wipe stock maps after fresh CS:S install.
+  when: not srcds_binary.stat.exists
+  block:
+    - name: List stock maps to remove.
+      ansible.builtin.find:
+        paths: "{{ srcds_game_dir }}/maps"
+        patterns:
+          - "*.bsp"
+          - "*.bsp.bz2"
+          - "*.nav"
+          - "*.ztmp"
+          - "*.txt"
+        file_type: file
+      register: srcds_stock_maps
+
+    - name: Remove stock maps.
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ srcds_stock_maps.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+
+    - name: Ensure maps/ exists and is owned by steam.
+      ansible.builtin.file:
+        path: "{{ srcds_game_dir }}/maps"
+        state: directory
+        owner: "{{ srcds_user }}"
+        group: "{{ srcds_user }}"
+        mode: "0755"

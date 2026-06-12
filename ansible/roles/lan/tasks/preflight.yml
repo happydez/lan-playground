@@ -1,0 +1,42 @@
+---
+- name: Verify spcomp is executable.
+  ansible.builtin.stat:
+    path: "{{ sm_scripting_dir }}/spcomp"
+  register: lan_spcomp_check
+  failed_when: not lan_spcomp_check.stat.exists or not lan_spcomp_check.stat.executable | default(false)
+
+- name: Create build workspace.
+  ansible.builtin.file:
+    path: "{{ srcds_work_dir }}"
+    state: directory
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0755"
+
+- name: Ensure SM dirs exist.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0755"
+  loop:
+    - "{{ sm_plugins_dir }}"
+    - "{{ sm_extensions_dir }}"
+    - "{{ sm_gamedata_dir }}"
+    - "{{ sm_configs_dir }}"
+    - "{{ sm_translations_dir }}"
+    - "{{ sm_include_dir }}"
+
+- name: Fix ownership of SourceMod include and plugin directories.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    state: directory
+    recurse: true
+  loop:
+    - "{{ sm_include_dir }}"
+    - "{{ sm_plugins_dir }}"
+    - "{{ sm_gamedata_dir }}"
+  become: true

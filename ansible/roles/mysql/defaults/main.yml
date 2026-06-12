@@ -1,0 +1,16 @@
+---
+# mysql_root_password is set in group_vars (single source of truth).
+# This default exists only as a fallback for standalone role runs.
+mysql_root_password: "p@sSw0rD"
+
+# Callers MUST pass this via include_role: vars:.
+# Each entry: { db_name, db_user, db_password }.
+mysql_databases: []
+
+mysql_db_encoding: utf8mb4
+mysql_db_collation: utf8mb4_general_ci
+
+# Hosts each database user is created for.
+mysql_user_hosts:
+  - localhost
+  - 127.0.0.1

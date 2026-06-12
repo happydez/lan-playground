@@ -1,0 +1,60 @@
+---
+- name: Ensure steamcmd directory exists.
+  ansible.builtin.file:
+    path: "{{ srcds_steamcmd_dir }}"
+    state: directory
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0755"
+
+- name: Download SteamCMD.
+  ansible.builtin.get_url:
+    url: "{{ srcds_steamcmd_url }}"
+    dest: /tmp/steamcmd_linux.tar.gz
+    mode: "0644"
+
+- name: Extract SteamCMD.
+  ansible.builtin.unarchive:
+    src: /tmp/steamcmd_linux.tar.gz
+    dest: "{{ srcds_steamcmd_dir }}"
+    remote_src: true
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    creates: "{{ srcds_steamcmd_dir }}/steamcmd.sh"
+
+- name: Remove SteamCMD archive.
+  ansible.builtin.file:
+    path: /tmp/steamcmd_linux.tar.gz
+    state: absent
+
+- name: Bootstrap SteamCMD (first run pulls its own updates).
+  ansible.builtin.command: "{{ srcds_steamcmd_dir }}/steamcmd.sh +quit"
+  become: true
+  register: srcds_steamcmd_bootstrap
+  changed_when: false
+  failed_when: false
+
+- name: Create Steam SDK directories.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0755"
+  loop:
+    - "{{ srcds_steam_home }}/.steam"
+    - "{{ srcds_steam_home }}/.steam/sdk32"
+    - "{{ srcds_steam_home }}/.steam/sdk64"
+
+- name: Create SDK symlinks for steamclient.so.
+  ansible.builtin.file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    force: true
+  loop:
+    - { src: "{{ srcds_steamcmd_dir }}/linux32/steamclient.so", dest: "{{ srcds_steam_home }}/.steam/sdk32/steamclient.so" }
+    - { src: "{{ srcds_steamcmd_dir }}/linux64/steamclient.so", dest: "{{ srcds_steam_home }}/.steam/sdk64/steamclient.so" }
+    - { src: "{{ srcds_steamcmd_dir }}/linux32/steamclient.so", dest: "{{ srcds_steam_home }}/.steam/steamclient.so" }

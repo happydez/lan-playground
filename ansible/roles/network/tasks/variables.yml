@@ -1,0 +1,16 @@
+---
+- name: Include OS-specific variables.
+  ansible.builtin.include_vars: "{{ lookup('first_found', network__vars_params) }}"
+  vars:
+    network__vars_params:
+      files:
+        - "{{ ansible_facts.distribution }}-{{ ansible_facts.distribution_major_version }}.yml"
+        - "{{ ansible_facts.distribution }}.yml"
+        - "{{ ansible_facts.os_family }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Define network_ssh_service.
+  ansible.builtin.set_fact:
+    network_ssh_service: "{{ __network_ssh_service }}"
+  when: network_ssh_service is not defined

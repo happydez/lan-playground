@@ -1,0 +1,10 @@
+"Groups"
+{
+{% for group in admin_groups %}
+    "{{ group.name }}"
+    {
+        "flags"     "{{ group.flags }}"
+        "immunity"  "{{ group.immunity }}"
+    }
+{% endfor %}
+}

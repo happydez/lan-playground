@@ -1,0 +1,75 @@
+---
+- name: Ensure addons dir is owned by steam.
+  ansible.builtin.file:
+    path: "{{ srcds_game_dir }}/addons"
+    state: directory
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    recurse: true
+
+# MetaMod
+- name: Check if MetaMod already installed.
+  ansible.builtin.stat:
+    path: "{{ srcds_game_dir }}/addons/metamod.vdf"
+  register: srcds_mm_check
+
+- name: Download MetaMod.
+  ansible.builtin.get_url:
+    url: "{{ metamod_url }}"
+    dest: /tmp/metamod.tar.gz
+    timeout: 60
+  when: not srcds_mm_check.stat.exists
+
+- name: Extract MetaMod into game dir.
+  ansible.builtin.unarchive:
+    src: /tmp/metamod.tar.gz
+    dest: "{{ srcds_game_dir }}"
+    remote_src: true
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    extra_opts:
+      - --overwrite
+      - --no-same-owner
+  when: not srcds_mm_check.stat.exists
+
+- name: Remove MetaMod archive.
+  ansible.builtin.file:
+    path: /tmp/metamod.tar.gz
+    state: absent
+
+# SourceMod
+- name: Check if SourceMod already installed.
+  ansible.builtin.stat:
+    path: "{{ srcds_game_dir }}/addons/sourcemod/bin/sourcemod_mm_i486.so"
+  register: srcds_sm_check
+
+- name: Download SourceMod.
+  ansible.builtin.get_url:
+    url: "{{ sourcemod_url }}"
+    dest: /tmp/sourcemod.tar.gz
+    timeout: 60
+  when: not srcds_sm_check.stat.exists
+
+- name: Extract SourceMod into game dir.
+  ansible.builtin.unarchive:
+    src: /tmp/sourcemod.tar.gz
+    dest: "{{ srcds_game_dir }}"
+    remote_src: true
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    extra_opts:
+      - --overwrite
+      - --no-same-owner
+  when: not srcds_sm_check.stat.exists
+
+- name: Ensure spcomp is executable.
+  ansible.builtin.file:
+    path: "{{ srcds_game_dir }}/addons/sourcemod/scripting/spcomp"
+    mode: "0755"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+
+- name: Remove SourceMod archive.
+  ansible.builtin.file:
+    path: /tmp/sourcemod.tar.gz
+    state: absent

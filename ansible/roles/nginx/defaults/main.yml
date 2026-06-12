@@ -1,0 +1,12 @@
+---
+fastdl_server_name: "_"
+fastdl_listen_port: 80
+fastdl_rate_zone_size: "10m"
+fastdl_rate_limit: "30r/m"
+fastdl_rate_burst: 1
+steam_home: /home/steam
+srcds_servers_dir: servers
+
+# Callers MUST pass this via include_role: vars: from the server loop.
+# Each entry: { name, fastdl_prefix }.
+fastdl_servers: []

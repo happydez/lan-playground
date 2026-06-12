@@ -1,0 +1,9 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart srcds
+  ansible.builtin.systemd:
+    name: "{{ srcds_server_name }}"
+    state: restarted

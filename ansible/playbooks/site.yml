@@ -1,0 +1,21 @@
+---
+- name: "LAN"
+  hosts: lan_servers
+  become: true
+  roles:
+    - role: common
+      tags: [common]
+    - role: network
+      tags: [network]
+
+- name: "Server provisioning"
+  hosts: lan_servers
+  become: true
+  tasks:
+    - name: "Provision {{ server.name }}"
+      ansible.builtin.include_tasks: tasks/server.yml
+      loop: "{{ servers_list }}"
+      loop_control:
+        loop_var: server
+        label: "{{ server.name }}"
+      tags: [mysql, srcds, server, nginx, fastdl, deploy, recompile]

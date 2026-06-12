@@ -1,0 +1,17 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: lan
+  author: happydez
+  description: SourceMod extensions, bhoptimer and gameplay plugins for srcds.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - srcds
+    - sourcemod
+    - bhop

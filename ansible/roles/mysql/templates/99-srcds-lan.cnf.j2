@@ -1,0 +1,10 @@
+[mysqld]
+bind-address = 0.0.0.0
+sql_mode = STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
+# No replication on a LAN box - binary logs only eat disk (30 days by default).
+skip-log-bin
+{% if mysql_major | int == 8 and mysql_minor | int >= 4 %}
+mysql_native_password = ON
+{% else %}
+default_authentication_plugin = mysql_native_password
+{% endif %}

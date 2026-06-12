@@ -1,0 +1,1 @@
+limit_req_zone $binary_remote_addr zone=map_limit:{{ fastdl_rate_zone_size }} rate={{ fastdl_rate_limit }};

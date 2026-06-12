@@ -1,0 +1,39 @@
+---
+__common_base_packages:
+  - ca-certificates
+  - curl
+  - wget
+  - unzip
+  - tar
+  - git
+  - rsync
+  - acl
+  - gnupg
+  - lsb-release
+  - apt-transport-https
+  - linux-tools-generic
+
+__common_srcds_runtime_packages:
+  - lib32gcc-s1
+  - lib32stdc++6
+  - lib32z1
+  - libc6:i386
+  - libstdc++6:i386
+  - libgcc-s1:i386
+  - libcurl4:i386
+  - zlib1g:i386
+  - libtinfo6:i386
+
+__common_build_packages:
+  - build-essential
+  - clang
+  - gcc-multilib
+  - g++-multilib
+  - libstdc++-11-dev
+  - lib32stdc++-11-dev
+  - python3
+  - python3-pip
+
+__common_php_packages:
+  - php-fpm
+  - php-mysql

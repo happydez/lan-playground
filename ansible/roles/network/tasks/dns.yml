@@ -1,0 +1,36 @@
+---
+- name: Ensure /etc/systemd/resolved.conf.d exists.
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Drop in resolved.conf with our DNS servers.
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/10-bootstrap-dns.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by Ansible network role - do not edit by hand.
+      [Resolve]
+      DNS={{ bootstrap_dns_primary | join(' ') }}
+      FallbackDNS={{ bootstrap_dns_fallback | join(' ') }}
+      DNSStubListener=yes
+  notify: Restart systemd-resolved
+
+- name: Point /etc/resolv.conf at systemd-resolved's stub.
+  ansible.builtin.file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+  failed_when: false
+
+- name: Enable + start systemd-resolved.
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    enabled: true
+    state: started

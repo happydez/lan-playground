@@ -1,0 +1,51 @@
+---
+- name: Detect MySQL version.
+  ansible.builtin.shell: |
+    set -o pipefail
+    mysqld --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1
+  args:
+    executable: /bin/bash
+  register: mysql_version_raw
+  changed_when: false
+
+- name: Set MySQL version facts.
+  ansible.builtin.set_fact:
+    mysql_version: "{{ mysql_version_raw.stdout }}"
+    mysql_major: "{{ mysql_version_raw.stdout.split('.')[0] }}"
+    mysql_minor: "{{ mysql_version_raw.stdout.split('.')[1] }}"
+
+- name: Show MySQL version.
+  ansible.builtin.debug:
+    msg: "Detected MySQL {{ mysql_version }}"
+
+- name: Ensure MySQL include config dir exists.
+  ansible.builtin.file:
+    path: "{{ mysql_conf_include_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install srcds-lan MySQL config.
+  ansible.builtin.template:
+    src: 99-srcds-lan.cnf.j2
+    dest: "{{ mysql_conf_include_dir }}/99-srcds-lan.cnf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart mysql
+
+- name: Enable and start MySQL.
+  ansible.builtin.systemd:
+    name: "{{ mysql_daemon }}"
+    enabled: true
+    state: started
+
+- name: Run pending handlers (restart MySQL if config changed).
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for MySQL to be available.
+  ansible.builtin.command: mysqladmin ping --silent
+  register: mysql_ping
+  retries: 30
+  delay: 1
+  until: mysql_ping.rc == 0
+  changed_when: false

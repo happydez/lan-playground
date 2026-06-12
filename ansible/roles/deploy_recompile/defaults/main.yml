@@ -1,0 +1,48 @@
+---
+recompile_server_name: "Bhop Server"
+recompile_servers_dir: "servers"
+recompile_server_port: "27015"
+recompile_rcon_password: "RCON123456789"
+recompile_default_map: "bhop_stref_universe"
+recompile_fastdl_prefix: "fastdl/lan/bhop"
+
+recompile_local_src: "{{ playbook_dir }}/../server"
+
+recompile_root_game_dir: "/home/steam/{{ recompile_servers_dir }}/{{ recompile_server_name }}"
+recompile_game_dir: "{{ recompile_root_game_dir }}/cstrike"
+recompile_sm_dir: "{{ recompile_game_dir }}/addons/sourcemod"
+recompile_scripting: "{{ recompile_sm_dir }}/scripting"
+recompile_plugins: "{{ recompile_sm_dir }}/plugins"
+
+recompile_public_ip: "{{ ansible_host | default(ansible_default_ipv4.address) }}"
+
+recompile_plugins_list:
+  - shavit-core
+  - shavit-zones
+  - shavit-hud
+  - shavit-mapchooser
+  - shavit-misc
+  - shavit-rankings
+  - shavit-replay-playback
+  - shavit-replay-recorder
+  - shavit-stats
+  - shavit-tas
+  - shavit-wr
+  - helix_shoots_fast
+  - mpbhops_but_working
+  - line
+  - nogun
+  - landfix
+  - jumpstats
+  - bhop-get-stats
+  - paint
+  - triggers
+  - map-decals
+  - clipsparser
+  - edge-helper
+  - Stripper
+  - client-side-cheats
+
+delete_plugins_list:
+  - shavit-timelimit
+  - nextmap

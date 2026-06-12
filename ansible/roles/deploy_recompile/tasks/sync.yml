@@ -1,0 +1,49 @@
+---
+- name: Sanity-check local server source folder.
+  ansible.builtin.stat:
+    path: "{{ recompile_local_src }}/cstrike"
+  register: recompile_src_stat
+  delegate_to: localhost
+  become: false
+
+- name: Fail if local source tree is missing.
+  ansible.builtin.fail:
+    msg: "Local folder {{ recompile_local_src }} doesn't contain cstrike/. Create it next to your playbook."
+  when: not recompile_src_stat.stat.exists
+
+- name: Sync cstrike/ (full tree, excluding state data).
+  ansible.posix.synchronize:
+    src: "{{ recompile_local_src }}/cstrike/"
+    dest: "{{ recompile_game_dir }}/"
+    delete: false
+    recursive: true
+    rsync_opts:
+      - "--chown=steam:steam"
+      - "--no-perms"
+      - "--omit-dir-times"
+      - "--exclude=addons/sourcemod/configs/databases.cfg"
+      - "--exclude=addons/sourcemod/data/"
+
+- name: Sync fastdl/ (if exists locally).
+  ansible.posix.synchronize:
+    src: "{{ recompile_local_src }}/fastdl/"
+    dest: "{{ recompile_root_game_dir }}/fastdl/"
+    delete: false
+    recursive: true
+    rsync_opts:
+      - "--chown=steam:steam"
+      - "--no-perms"
+      - "--omit-dir-times"
+  ignore_errors: true
+
+- name: Sync addons/sourcemod/data (scaffold only, ignore existing state).
+  ansible.posix.synchronize:
+    src: "{{ recompile_local_src }}/cstrike/addons/sourcemod/data/"
+    dest: "{{ recompile_sm_dir }}/data/"
+    delete: false
+    recursive: true
+    rsync_opts:
+      - "--chown=steam:steam"
+      - "--no-perms"
+      - "--omit-dir-times"
+      - "--ignore-existing"

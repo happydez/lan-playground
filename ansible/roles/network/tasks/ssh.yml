@@ -1,0 +1,14 @@
+---
+- name: Configure strict SSH security rules.
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: '/usr/sbin/sshd -t -f %s'
+  loop:
+    - { regexp: '^#?Port\s+',                   line: 'Port {{ ssh_custom_port }}' }
+    - { regexp: '^#?PermitRootLogin\s+',        line: 'PermitRootLogin no' }
+    - { regexp: '^#?PasswordAuthentication\s+', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?PermitEmptyPasswords\s+',   line: 'PermitEmptyPasswords no' }
+  notify: Restart SSH

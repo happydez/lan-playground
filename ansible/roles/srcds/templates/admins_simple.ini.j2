@@ -1,0 +1,10 @@
+// admins_simple.ini
+// Format: "STEAMID" "@Group"  or  "STEAMID" "immunity:flags"
+
+{% for admin in admins %}
+{% if admin.group is defined %}
+"{{ admin.steamid }}"	"@{{ admin.group }}"
+{% elif admin.immunity is defined and admin.flags is defined %}
+"{{ admin.steamid }}"   "{{ admin.immunity }}:{{ admin.flags }}"
+{% endif %}
+{% endfor %}

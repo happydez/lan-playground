@@ -1,0 +1,12 @@
+---
+- name: Sync local server content.
+  ansible.builtin.import_tasks: sync.yml
+
+- name: Patch synced configs.
+  ansible.builtin.import_tasks: patch.yml
+
+- name: Recompile plugins.
+  ansible.builtin.import_tasks: recompile.yml
+
+- name: Reload the map via rcon.
+  ansible.builtin.import_tasks: reload.yml

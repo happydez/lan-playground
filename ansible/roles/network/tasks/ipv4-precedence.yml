@@ -1,0 +1,10 @@
+---
+- name: Prefer IPv4 over IPv6 for outgoing connections (gai.conf).
+  ansible.builtin.lineinfile:
+    path: /etc/gai.conf
+    regexp: '^#?\s*precedence\s+::ffff:0:0/96'
+    line: "precedence ::ffff:0:0/96  100"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"

@@ -1,0 +1,194 @@
+---
+# SteamWorks
+- name: Check if SteamWorks installed.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/SteamWorks.ext.so"
+  register: lan_steamworks_check
+
+- name: Install SteamWorks.
+  when: not lan_steamworks_check.stat.exists
+  block:
+    - name: Download SteamWorks.
+      ansible.builtin.get_url:
+        url: "{{ steamworks_url }}"
+        dest: "{{ srcds_work_dir }}/steamworks.tgz"
+        timeout: 30
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+    - name: Extract SteamWorks into game dir.
+      ansible.builtin.unarchive:
+        src: "{{ srcds_work_dir }}/steamworks.tgz"
+        dest: "{{ srcds_game_dir }}"
+        remote_src: true
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+        extra_opts:
+          - --strip-components=1
+
+    - name: Patch SteamWorks.inc for SM 1.12 syntax.
+      ansible.builtin.replace:
+        path: "{{ sm_include_dir }}/SteamWorks.inc"
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - { regexp: 'const char sData\[\]', replace: 'const char[] sData' }
+        - { regexp: 'const int data\[\]', replace: 'const int[] data' }
+
+# sm-ripext
+- name: Check if sm-ripext installed.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/rip.ext.so"
+  register: lan_ripext_check
+
+- name: Install sm-ripext.
+  when: not lan_ripext_check.stat.exists
+  block:
+    - name: Download sm-ripext zip.
+      ansible.builtin.get_url:
+        url: "{{ smripext_url }}"
+        dest: "{{ srcds_work_dir }}/ripext.zip"
+        timeout: 30
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+    - name: Extract sm-ripext into game dir.
+      ansible.builtin.unarchive:
+        src: "{{ srcds_work_dir }}/ripext.zip"
+        dest: "{{ srcds_game_dir }}"
+        remote_src: true
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+# srcwrfloppy
+- name: Check if srcwrfloppy installed.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/srcwr💾.ext.so"
+  register: lan_srcwrfloppy_check
+
+- name: Install srcwrfloppy.
+  when: not lan_srcwrfloppy_check.stat.exists
+  block:
+    - name: Download srcwrfloppy zip.
+      ansible.builtin.get_url:
+        url: "{{ srcwrfloppy_url }}"
+        dest: "{{ srcds_work_dir }}/srcwrfloppy.zip"
+        timeout: 30
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+    - name: Extract srcwrfloppy into game dir.
+      ansible.builtin.unarchive:
+        src: "{{ srcds_work_dir }}/srcwrfloppy.zip"
+        dest: "{{ srcds_game_dir }}"
+        remote_src: true
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+        include:
+          - "addons/*"
+
+# clipsparser
+- name: Check if clipsparser installed.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/clipsparser.ext.so"
+  register: lan_clipsparser_check
+
+- name: Install clipsparser.
+  when: not lan_clipsparser_check.stat.exists
+  block:
+    - name: Download clipsparser zip.
+      ansible.builtin.get_url:
+        url: "{{ clipsparser_url }}"
+        dest: "{{ srcds_work_dir }}/clipsparser.zip"
+        timeout: 30
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+    - name: Extract clipsparser into server dir.
+      ansible.builtin.unarchive:
+        src: "{{ srcds_work_dir }}/clipsparser.zip"
+        dest: "{{ srcds_server_dir }}"
+        remote_src: true
+        owner: "{{ lan_user }}"
+        group: "{{ lan_user }}"
+
+# Connect extension
+- name: Check if Connect extension installed.
+  ansible.builtin.stat:
+    path: "{{ sm_extensions_dir }}/connect.ext.so"
+  register: lan_connect_check
+
+- name: Download Connect extension zip.
+  ansible.builtin.get_url:
+    url: "{{ connect_url }}"
+    dest: "{{ srcds_work_dir }}/connect.zip"
+    timeout: 30
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+  when: not lan_connect_check.stat.exists
+  register: lan_connect_dl
+  ignore_errors: true
+
+- name: Create Connect extract dir.
+  ansible.builtin.file:
+    path: "{{ srcds_work_dir }}/connect-extracted"
+    state: directory
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0755"
+  when: not lan_connect_check.stat.exists and lan_connect_dl is not failed
+
+- name: Extract Connect extension.
+  ansible.builtin.unarchive:
+    src: "{{ srcds_work_dir }}/connect.zip"
+    dest: "{{ srcds_work_dir }}/connect-extracted"
+    remote_src: true
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+  when: not lan_connect_check.stat.exists and lan_connect_dl is not failed
+
+- name: Install Connect ext files.
+  ansible.builtin.shell: |
+    [ -d "{{ srcds_work_dir }}/connect-extracted/addons/sourcemod/extensions" ] && cp -r {{ srcds_work_dir }}/connect-extracted/addons/sourcemod/extensions/* {{ sm_extensions_dir }}/ || true
+    [ -d "{{ srcds_work_dir }}/connect-extracted/addons/sourcemod/gamedata" ] && cp -r {{ srcds_work_dir }}/connect-extracted/addons/sourcemod/gamedata/* {{ sm_gamedata_dir }}/ || true
+    [ -d "{{ srcds_work_dir }}/connect-extracted/addons/sourcemod/scripting/include" ] && cp -r {{ srcds_work_dir }}/connect-extracted/addons/sourcemod/scripting/include/* {{ sm_include_dir }}/ || true
+    chown -R {{ lan_user }}:{{ lan_user }} {{ sm_extensions_dir }} {{ sm_gamedata_dir }} {{ sm_include_dir }}
+  when: not lan_connect_check.stat.exists and lan_connect_dl is not failed
+  changed_when: true
+
+- name: Warn if Connect download failed.
+  ansible.builtin.debug:
+    msg: "Connect extension download failed. Skipping its installation."
+  when: lan_connect_dl is defined and lan_connect_dl is failed
+
+# GeoLite2 City database
+- name: Ensure geoip dir exists.
+  ansible.builtin.file:
+    path: "{{ sm_configs_dir }}/geoip"
+    state: directory
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0755"
+
+- name: Check if GeoLite2 installed.
+  ansible.builtin.stat:
+    path: "{{ sm_configs_dir }}/geoip/GeoLite2-City.mmdb"
+  register: lan_geolite_check
+
+- name: Download GeoLite2-City.mmdb.
+  ansible.builtin.get_url:
+    url: "{{ geolite_url }}"
+    dest: "{{ sm_configs_dir }}/geoip/GeoLite2-City.mmdb"
+    timeout: 30
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0644"
+  when: not lan_geolite_check.stat.exists
+
+- name: Remove legacy Stripper:Source extension.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ srcds_game_dir }}/addons/stripper"
+    - "{{ srcds_game_dir }}/addons/metamod/stripper.vdf"

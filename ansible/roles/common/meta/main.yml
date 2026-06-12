@@ -1,0 +1,16 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: common
+  author: happydez
+  description: Base packages, steam user, rcon-cli, Docker and host tuning for srcds LAN hosts.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - srcds
+    - lan

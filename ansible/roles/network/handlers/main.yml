@@ -1,0 +1,15 @@
+---
+- name: Restart SSH
+  ansible.builtin.systemd:
+    name: "{{ network_ssh_service }}"
+    state: restarted
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+
+- name: Restart systemd-hostnamed
+  ansible.builtin.systemd:
+    name: systemd-hostnamed
+    state: restarted

@@ -1,0 +1,14 @@
+---
+- name: Patch server.cfg (sv_downloadurl).
+  ansible.builtin.replace:
+    path: "{{ recompile_game_dir }}/cfg/server.cfg"
+    regexp: '^sv_downloadurl\s+".*"'
+    replace: 'sv_downloadurl "http://{{ recompile_public_ip }}/{{ recompile_fastdl_prefix }}"'
+  failed_when: false
+
+- name: Patch motd_default.txt.
+  ansible.builtin.replace:
+    path: "{{ recompile_game_dir }}/cfg/motd_default.txt"
+    regexp: 'http://[^/]+/[^"]*?/motd/'
+    replace: 'http://{{ recompile_public_ip }}/{{ recompile_fastdl_prefix }}/motd/'
+  failed_when: false

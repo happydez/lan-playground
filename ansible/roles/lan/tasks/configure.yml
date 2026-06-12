@@ -1,0 +1,25 @@
+---
+- name: Upload whitelist.txt to the server.
+  ansible.builtin.copy:
+    src: "whitelist/whitelist.txt"
+    dest: "{{ sm_configs_dir }}/"
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0775"
+    force: true
+
+- name: Upload default sm_textcolors.cfg.
+  ansible.builtin.copy:
+    src: "smprefix/sm_textcolors.cfg"
+    dest: "{{ sm_configs_dir }}/"
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0644"
+
+- name: Install timer db config.
+  ansible.builtin.template:
+    src: databases.cfg.j2
+    dest: "{{ sm_configs_dir }}/databases.cfg"
+    owner: "{{ lan_user }}"
+    group: "{{ lan_user }}"
+    mode: "0644"

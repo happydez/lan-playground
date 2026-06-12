@@ -1,0 +1,22 @@
+---
+servers_dir: servers
+
+servers_list:
+  - name: lan-bhop-server
+    port: 27015
+    hostname: "Bhop Server"
+    rcon_password: "RCON123456789"
+    server_default_map: "bhop_stref_universe"
+    sv_password: ""
+    gslt_token: ""
+    sw_gamedesc: "LAN"
+
+    nginx_fastdl_prefix: "fastdl/lan/bhop"
+
+    mysql_timer_db: "timerdb"
+    mysql_timer_user: "timeruser"
+    mysql_timer_password: "p@sSw0rD"
+
+    mysql_flags_db: "flagsdb"
+    mysql_flags_user: "flagdbsuser"
+    mysql_flags_password: "p@sSw0rD"

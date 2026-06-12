@@ -1,0 +1,50 @@
+---
+- name: Check which SM 1.11 plugins need building.
+  ansible.builtin.stat:
+    path: "{{ sm_plugins_dir }}/{{ item.smx }}.smx"
+  register: lan_sm11_plugin_stats
+  loop: "{{ lan_sm11_plugins }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Determine if SM 1.11 bootstrap is needed.
+  ansible.builtin.set_fact:
+    lan_sm11_needed: "{{ lan_sm11_plugin_stats.results | selectattr('stat.exists', 'equalto', false) | list | length > 0 }}"
+
+- name: Process SM 1.11 legacy plugins.
+  when: lan_sm11_needed
+  block:
+    - name: Create SM 1.11 workspace.
+      ansible.builtin.file:
+        path: "{{ lan_sm11_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download SM 1.11.
+      ansible.builtin.get_url:
+        url: "{{ sm11_url }}"
+        dest: "{{ srcds_work_dir }}/sm11.tar.gz"
+        timeout: 30
+
+    - name: Extract SM 1.11.
+      ansible.builtin.unarchive:
+        src: "{{ srcds_work_dir }}/sm11.tar.gz"
+        dest: "{{ lan_sm11_dir }}"
+        remote_src: true
+        creates: "{{ lan_sm11_scripting_dir }}/spcomp"
+
+    - name: Make SM 1.11 spcomp executable.
+      ansible.builtin.file:
+        path: "{{ lan_sm11_scripting_dir }}/spcomp"
+        mode: "0755"
+
+    - name: Install SM 1.11 plugins.
+      ansible.builtin.include_tasks:
+        file: plugin.yml
+        apply:
+          become: true
+          become_user: "{{ lan_user }}"
+      loop: "{{ lan_sm11_plugins }}"
+      loop_control:
+        loop_var: plugin
+        label: "{{ plugin.name }}"

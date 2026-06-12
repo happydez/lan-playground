@@ -1,0 +1,17 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: srcds
+  author: happydez
+  description: SteamCMD, CS:Source dedicated server, MetaMod/SourceMod, TickrateEnabler, systemd unit.
+  license: MIT
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+  galaxy_tags:
+    - srcds
+    - steam
+    - sourcemod

@@ -1,0 +1,36 @@
+[Unit]
+Description=CS:S Bhop Server ({{ srcds_server_name }})
+After=network.target
+
+[Service]
+Type=simple
+User=steam
+Group=steam
+WorkingDirectory={{ srcds_server_dir }}
+ExecStart={{ srcds_server_dir }}/start.sh
+
+# CPU
+Nice={{ srcds_nice }}
+CPUAffinity={{ srcds_cpu_affinity }}
+
+# IO
+IOSchedulingClass=best-effort
+IOSchedulingPriority={{ srcds_io_priority }}
+
+# Limits
+MemoryMax={{ srcds_memory_max }}
+TasksMax=4096
+LimitNOFILE=65535
+LimitNPROC=4096
+
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier={{ srcds_server_name }}
+
+[Install]
+WantedBy=multi-user.target

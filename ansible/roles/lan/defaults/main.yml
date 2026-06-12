@@ -1,0 +1,343 @@
+---
+lan_user: steam
+
+srcds_servers_dir: servers
+srcds_server_name: lan-bhop-server
+srcds_server_dir: "/home/steam/{{ srcds_servers_dir }}/{{ srcds_server_name }}"
+srcds_game_dir: "{{ srcds_server_dir }}/cstrike"
+
+# SourceMod paths
+sm_scripting_dir: "{{ srcds_game_dir }}/addons/sourcemod/scripting"
+sm_plugins_dir: "{{ srcds_game_dir }}/addons/sourcemod/plugins"
+sm_extensions_dir: "{{ srcds_game_dir }}/addons/sourcemod/extensions"
+sm_gamedata_dir: "{{ srcds_game_dir }}/addons/sourcemod/gamedata"
+sm_configs_dir: "{{ srcds_game_dir }}/addons/sourcemod/configs"
+sm_translations_dir: "{{ srcds_game_dir }}/addons/sourcemod/translations"
+sm_include_dir: "{{ srcds_game_dir }}/addons/sourcemod/scripting/include"
+
+# Download URLs
+sm11_url: "https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6970-linux.tar.gz"
+steamworks_url: "https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz"
+smripext_url: "https://github.com/ErikMinekus/sm-ripext/releases/download/1.3.2/sm-ripext-1.3.2-linux.zip"
+connect_url: "https://builds.limetech.io/files/connect-1.4.0-git103-e9cfdd5-linux.zip"
+geolite_url: "https://git.io/GeoLite2-City.mmdb"
+srcwrfloppy_url: "https://github.com/srcwr/srcwrfloppy/releases/download/v4.0.0/srcwrfloppy-v4.0.0.zip"
+clipsparser_url: "https://github.com/happydez/clipsparser/releases/download/v1.1.0/clipsparser-sm1.12-ubuntu22.zip"
+
+# Workspace (cleaned at end)
+srcds_work_dir: "/tmp/srcds-build"
+
+# Legacy SourceMod 1.11 compiler tree (for plugins that don't build on 1.12)
+lan_sm11_dir: "{{ srcds_work_dir }}/sm11"
+lan_sm11_scripting_dir: "{{ lan_sm11_dir }}/addons/sourcemod/scripting"
+
+# databases.cfg.j2 timer
+mysql_timer_db: "timerdb"
+mysql_timer_user: "timeruser"
+mysql_timer_db_password: "p@sSw0rD"
+
+# databases.cfg.j2 flags-core
+mysql_flags_db: "flagsdb"
+mysql_flags_user: "flagdbsuser"
+mysql_flags_db_password: "p@sSw0rD"
+
+# bhoptimer
+bhoptimer_repo: "https://github.com/shavitush/bhoptimer.git"
+bhop_work_dir: "{{ srcds_work_dir }}"
+
+lan_closestpos_sm_branch: "1.12-dev"
+lan_closestpos_mm_branch: "1.12-dev"
+
+# Bugfix/utility plugins installed BEFORE bhoptimer.
+lan_plugins:
+  - name: HeadBugFix
+    smx: headbugfix
+    repos:
+      - { url: "https://github.com/GAMMACASE/HeadBugFix.git", dest: HeadBugFix }
+    copy:
+      - { src: "HeadBugFix/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "HeadBugFix/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "HeadBugFix/addons/sourcemod/scripting/headbugfix.sp", dest: "{{ sm_scripting_dir }}/headbugfix.sp" }
+    compile: [headbugfix.sp]
+
+  - name: EventQueueFix
+    smx: eventqueuefix
+    repos:
+      - { url: "https://github.com/hermansimensen/eventqueue-fix", dest: eventqueue-fix }
+    copy:
+      - { src: "eventqueue-fix/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "eventqueue-fix/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "eventqueue-fix/scripting/eventqueuefix.sp", dest: "{{ sm_scripting_dir }}/eventqueuefix.sp" }
+    compile: [eventqueuefix.sp]
+
+  - name: RngFix
+    smx: rngfix
+    repos:
+      - { url: "https://github.com/jason-e/rngfix", dest: rngfix }
+    copy:
+      - { src: "rngfix/plugin/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "rngfix/plugin/scripting/rngfix.sp", dest: "{{ sm_scripting_dir }}/rngfix.sp" }
+    compile: [rngfix.sp]
+
+  - name: DynamicChannels
+    smx: DynamicChannels
+    repos:
+      - { url: "https://github.com/Vauff/DynamicChannels", dest: DynamicChannels }
+    copy:
+      - { src: "DynamicChannels/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "DynamicChannels/scripting/DynamicChannels.sp", dest: "{{ sm_scripting_dir }}/DynamicChannels.sp" }
+    compile: [DynamicChannels.sp]
+
+  - name: EndTouchFix
+    smx: EndTouchFix
+    repos:
+      - { url: "https://github.com/rumourA/End-Touch-Fix", dest: End-Touch-Fix }
+    copy:
+      - { src: "End-Touch-Fix/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "End-Touch-Fix/scripting/EndTouchFix.sp", dest: "{{ sm_scripting_dir }}/EndTouchFix.sp" }
+    compile: [EndTouchFix.sp]
+
+  - name: LowerCaser
+    smx: linux_file_lowercaser
+    repos:
+      - { url: "https://github.com/rtldg/linux_file_lowercaser", dest: linux_file_lowercaser }
+    copy:
+      - { src: "linux_file_lowercaser/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "linux_file_lowercaser/addons/sourcemod/scripting/linux_file_lowercaser.sp", dest: "{{ sm_scripting_dir }}/linux_file_lowercaser.sp" }
+    compile: [linux_file_lowercaser.sp]
+
+  - name: ConvarClass
+    check_path: "{{ sm_include_dir }}/convar_class.inc"
+    repos:
+      - { url: "https://github.com/kidfearless/Auto-Exec-Config-Class", dest: Auto-Exec-Config-Class }
+    copy:
+      - { src: "Auto-Exec-Config-Class/scripting/include/convar_class.inc", dest: "{{ sm_include_dir }}/convar_class.inc" }
+
+  - name: SM-JSON
+    check_path: "{{ sm_include_dir }}/json.inc"
+    repos:
+      - { url: "https://github.com/clugg/sm-testsuite", dest: sm-testsuite }
+      - { url: "https://github.com/clugg/sm-json", dest: sm-json }
+    copy:
+      - { src: "sm-testsuite/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "sm-json/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+
+  - name: Whitelist
+    smx: whitelist
+    repos:
+      - { url: "https://github.com/rtldg/smwhitelist", dest: smwhitelist }
+    copy:
+      - { src: "smwhitelist/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "smwhitelist/addons/sourcemod/scripting/whitelist.sp", dest: "{{ sm_scripting_dir }}/whitelist.sp" }
+    compile: [whitelist.sp]
+
+  - name: SoundManager
+    smx: SoundManager
+    repos:
+      - { url: "https://github.com/Haze1337/Sound-Manager", dest: Sound-Manager }
+    copy:
+      - { src: "Sound-Manager/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "Sound-Manager/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "Sound-Manager/scripting/SoundManager.sp", dest: "{{ sm_scripting_dir }}/SoundManager.sp" }
+    compile: [SoundManager.sp]
+
+  - name: SuppressViewpunch
+    smx: SuppressViewpunch
+    repos:
+      - { url: "https://github.com/rtldg/SuppressViewpunch", dest: SuppressViewpunch }
+    copy:
+      - { src: "SuppressViewpunch/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "SuppressViewpunch/scripting/SuppressViewpunch.sp", dest: "{{ sm_scripting_dir }}/SuppressViewpunch.sp" }
+    compile: [SuppressViewpunch.sp]
+
+  - name: Stripper
+    smx: Stripper
+    repos:
+      - { url: "https://github.com/srcdslab/sm-plugin-stripper", dest: sm-plugin-stripper }
+    copy:
+      - { src: "sm-plugin-stripper/addons/sourcemod/configs/stripper/", dest: "{{ sm_configs_dir }}/stripper/" }
+      - { src: "sm-plugin-stripper/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "sm-plugin-stripper/addons/sourcemod/scripting/Stripper.sp", dest: "{{ sm_scripting_dir }}/Stripper.sp" }
+    local_copy:
+      - { src: "stripper/bhop_p09.cfg", dest: "{{ sm_configs_dir }}/stripper/maps/bhop_p09.cfg" }
+    compile: [Stripper.sp]
+
+  - name: SwGamedescOverride
+    smx: sw_gamedesc_override
+    local_copy:
+      - { src: "scripting/sw_gamedesc_override.sp", dest: "{{ sm_scripting_dir }}/sw_gamedesc_override.sp" }
+    compile: [sw_gamedesc_override.sp]
+
+  - name: SmDefaultTextReplace
+    smx: sm_defaulttextreplace
+    local_copy:
+      - { src: "scripting/sm_defaulttextreplace.sp", dest: "{{ sm_scripting_dir }}/sm_defaulttextreplace.sp" }
+    compile: [sm_defaulttextreplace.sp]
+
+lan_sm11_plugins:
+  - name: MomSurfFix
+    smx: momsurffix2
+    compiler: sm11
+    repos:
+      - { url: "https://github.com/GAMMACASE/MomSurfFix.git", dest: MomSurfFix }
+    copy:
+      - { src: "MomSurfFix/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "MomSurfFix/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "MomSurfFix/addons/sourcemod/scripting/include/", dest: "{{ lan_sm11_scripting_dir }}/include/" }
+      - { src: "MomSurfFix/addons/sourcemod/scripting/momsurffix2.sp", dest: "{{ lan_sm11_scripting_dir }}/momsurffix2.sp" }
+      - { src: "MomSurfFix/addons/sourcemod/scripting/momsurffix/", dest: "{{ lan_sm11_scripting_dir }}/momsurffix/" }
+    compile: [momsurffix2.sp]
+
+  - name: PushFixDE
+    smx: pushfix_de
+    compiler: sm11
+    repos:
+      - { url: "https://github.com/rumourA/PushFixDE", dest: PushFixDE }
+    copy:
+      - { src: "PushFixDE/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "PushFixDE/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "PushFixDE/addons/sourcemod/scripting/include/", dest: "{{ lan_sm11_scripting_dir }}/include/" }
+      - { src: "PushFixDE/addons/sourcemod/scripting/pushfix_de.sp", dest: "{{ lan_sm11_scripting_dir }}/pushfix_de.sp" }
+    compile: [pushfix_de.sp]
+
+# Gameplay plugins installed AFTER bhoptimer (some depend on shavit includes).
+lan_extra_plugins:
+  - name: HelixShootsFast
+    smx: helix_shoots_fast
+    local_copy:
+      - { src: "scripting/helix_shoots_fast.sp", dest: "{{ sm_scripting_dir }}/helix_shoots_fast.sp" }
+    compile: [helix_shoots_fast.sp]
+
+  - name: Printer
+    smx: printer
+    repos:
+      - { url: "https://github.com/happydez/printer.git", dest: printer }
+    copy:
+      - { src: "printer/addons/sourcemod/configs/printer.cfg", dest: "{{ sm_configs_dir }}/printer.cfg" }
+      - { src: "printer/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "printer/addons/sourcemod/scripting/printer.sp", dest: "{{ sm_scripting_dir }}/printer.sp" }
+    compile: [printer.sp]
+
+  - name: FlagsCore
+    smx: flags-core
+    repos:
+      - { url: "https://github.com/happydez/flags-core.git", dest: flags-core }
+    copy:
+      - { src: "flags-core/addons/sourcemod/configs/flags/", dest: "{{ sm_configs_dir }}/flags/" }
+      - { src: "flags-core/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "flags-core/addons/sourcemod/scripting/flags-core.sp", dest: "{{ sm_scripting_dir }}/flags-core.sp" }
+    compile: [flags-core.sp]
+
+  - name: MpBhopsButWorking
+    smx: mpbhops_but_working
+    repos:
+      - { url: "https://github.com/rtldg/mpbhops_but_working", dest: mpbhops_but_working }
+    copy:
+      - { src: "mpbhops_but_working/addons/sourcemod/scripting/mpbhops_but_working.sp", dest: "{{ sm_scripting_dir }}/mpbhops_but_working.sp" }
+    compile: [mpbhops_but_working.sp]
+
+  - name: Line
+    smx: line
+    repos:
+      - { url: "https://github.com/happydez/line.git", dest: line }
+    copy:
+      - { src: "line/addons/sourcemod/configs/", dest: "{{ sm_configs_dir }}/" }
+      - { src: "line/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "line/materials/", dest: "{{ srcds_game_dir }}/materials/" }
+      - { src: "line/addons/sourcemod/scripting/line.sp", dest: "{{ sm_scripting_dir }}/line.sp" }
+    compile: [line.sp]
+
+  - name: NoGun
+    smx: nogun
+    repos:
+      - { url: "https://github.com/BoomShotKapow/NoGun.git", dest: nogun }
+    copy:
+      - { src: "nogun/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "nogun/scripting/nogun.sp", dest: "{{ sm_scripting_dir }}/nogun.sp" }
+    compile: [nogun.sp]
+
+  - name: Landfix
+    smx: landfix
+    downloads:
+      - { url: "https://raw.githubusercontent.com/Haze1337/Landfix/refs/heads/master/landfix.sp", dest: "{{ sm_scripting_dir }}/landfix.sp" }
+    compile: [landfix.sp]
+
+  - name: JumpStats
+    smx: jumpstats
+    repos:
+      - { url: "https://github.com/enimmy/bhop-get-stats", dest: jumpstats }
+    copy:
+      - { src: "jumpstats/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "jumpstats/scripting/jumpstat/", dest: "{{ sm_scripting_dir }}/jumpstat/" }
+      - { src: "jumpstats/scripting/bhop-get-stats.sp", dest: "{{ sm_scripting_dir }}/bhop-get-stats.sp" }
+      - { src: "jumpstats/scripting/jumpstats.sp", dest: "{{ sm_scripting_dir }}/jumpstats.sp" }
+    compile: [jumpstats.sp, bhop-get-stats.sp]
+
+  - name: TriggerAntiAbuse
+    smx: trigger-antiabuse
+    repos:
+      - { url: "https://github.com/happydez/trigger_antiabuse.git", dest: trigger_antiabuse }
+    copy:
+      - { src: "trigger_antiabuse/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "trigger_antiabuse/scripting/trigger-antiabuse.sp", dest: "{{ sm_scripting_dir }}/trigger-antiabuse.sp" }
+    compile: [trigger-antiabuse.sp]
+
+  - name: EdgeHelper
+    smx: edge-helper
+    downloads:
+      - { url: "https://raw.githubusercontent.com/rtldg/edge-helper/refs/heads/main/edge-helper.sp", dest: "{{ sm_scripting_dir }}/edge-helper.sp" }
+    compile: [edge-helper.sp]
+
+  - name: Paint
+    smx: paint
+    repos:
+      - { url: "https://github.com/happydez/paint.git", dest: paint }
+    copy:
+      - { src: "paint/materials/", dest: "{{ srcds_game_dir }}/materials/" }
+      - { src: "paint/addons/sourcemod/scripting/paint.sp", dest: "{{ sm_scripting_dir }}/paint.sp" }
+    compile: [paint.sp]
+
+  - name: Triggers
+    smx: triggers
+    repos:
+      - { url: "https://github.com/happydez/triggers.git", dest: triggers }
+    copy:
+      - { src: "triggers/addons/sourcemod/gamedata/", dest: "{{ sm_gamedata_dir }}/" }
+      - { src: "triggers/addons/sourcemod/scripting/include/", dest: "{{ sm_include_dir }}/" }
+      - { src: "triggers/materials/", dest: "{{ srcds_game_dir }}/materials/" }
+      - { src: "triggers/addons/sourcemod/scripting/triggers.sp", dest: "{{ sm_scripting_dir }}/triggers.sp" }
+      - { src: "triggers/addons/sourcemod/scripting/timer-triggers.sp", dest: "{{ sm_scripting_dir }}/timer-triggers.sp" }
+    compile: [triggers.sp, timer-triggers.sp]
+
+  - name: Shavit-Bash2
+    smx: shavit-bash2
+    repos:
+      - { url: "https://github.com/enimmy/bash2.git", dest: bash2 }
+    copy:
+      - { src: "bash2/scripting/include/bash2.inc", dest: "{{ sm_include_dir }}/bash2.inc" }
+      - { src: "bash2/scripting/colors.sp", dest: "{{ sm_scripting_dir }}/colors.sp" }
+      - { src: "bash2/scripting/shavit-bash2.sp", dest: "{{ sm_scripting_dir }}/shavit-bash2.sp" }
+    patches:
+      - path: "{{ sm_scripting_dir }}/shavit-bash2.sp"
+        regexp: 'public void SteamWorks_OnClientGroupStatus'
+        replace: 'public int SteamWorks_OnClientGroupStatus'
+    compile: [shavit-bash2.sp]
+
+  - name: MapDecals
+    smx: map-decals
+    repos:
+      - { url: "https://github.com/happydez/map-decals.git", dest: map-decals }
+    copy:
+      - { src: "map-decals/addons/sourcemod/configs/fun/", dest: "{{ sm_configs_dir }}/fun/" }
+      - { src: "map-decals/materials/", dest: "{{ srcds_game_dir }}/materials/" }
+      - { src: "map-decals/addons/sourcemod/scripting/map-decals.sp", dest: "{{ sm_scripting_dir }}/map-decals.sp" }
+    compile: [map-decals.sp]
+
+  - name: Weapons
+    smx: weapons
+    repos:
+      - { url: "https://github.com/happydez/weapons.git", dest: weapons }
+    copy:
+      - { src: "weapons/materials/", dest: "{{ srcds_game_dir }}/materials/" }
+      - { src: "weapons/addons/sourcemod/scripting/weapons.sp", dest: "{{ sm_scripting_dir }}/weapons.sp" }
+    compile: [weapons.sp]

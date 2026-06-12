@@ -1,0 +1,18 @@
+---
+- name: Check if maps already exist on server.
+  ansible.builtin.stat:
+    path: "{{ srcds_game_dir }}/maps/{{ item }}.bsp"
+  loop: "{{ srcds_maps }}"
+  register: srcds_map_stats
+
+- name: Upload maps to the server.
+  ansible.builtin.copy:
+    src: "maps/{{ item.item }}.bsp"
+    dest: "{{ srcds_game_dir }}/maps/{{ item.item }}.bsp"
+    owner: "{{ srcds_user }}"
+    group: "{{ srcds_user }}"
+    mode: "0775"
+  loop: "{{ srcds_map_stats.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists

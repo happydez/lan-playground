@@ -1,0 +1,61 @@
+---
+- name: Check if TickrateEnabler already installed.
+  ansible.builtin.stat:
+    path: "{{ srcds_game_dir }}/addons/TickrateEnabler.vdf"
+  register: srcds_tickrate_check
+
+- name: Install TickrateEnabler.
+  when: not srcds_tickrate_check.stat.exists
+  block:
+    - name: Download TickrateEnabler release zip.
+      ansible.builtin.get_url:
+        url: "{{ tickrate_zip_url }}"
+        dest: /tmp/tickrate.zip
+        timeout: 30
+
+    - name: Extract TickrateEnabler.
+      ansible.builtin.unarchive:
+        src: /tmp/tickrate.zip
+        dest: "{{ srcds_game_dir }}/addons"
+        remote_src: true
+        owner: "{{ srcds_user }}"
+        group: "{{ srcds_user }}"
+
+    - name: Remove temporary TickrateEnabler zip.
+      ansible.builtin.file:
+        path: /tmp/tickrate.zip
+        state: absent
+
+- name: Check if 64-bit TickrateEnabler built.
+  ansible.builtin.stat:
+    path: "{{ srcds_game_dir }}/addons/TickrateEnabler64.so"
+  register: srcds_tickrate64_check
+
+- name: Build 64-bit TickrateEnabler.
+  when: not srcds_tickrate64_check.stat.exists
+  block:
+    - name: Download TickrateEnabler source for 64-bit build.
+      ansible.builtin.get_url:
+        url: "{{ tickrate_cpp_url }}"
+        dest: /tmp/tickrate_main.cpp
+        timeout: 30
+
+    - name: Compile 64-bit TickrateEnabler.
+      ansible.builtin.command:
+        cmd: >
+          g++ -std=c++17 /tmp/tickrate_main.cpp
+          -o {{ srcds_game_dir }}/addons/TickrateEnabler64.so
+          -fPIC -s -shared -m64
+        creates: "{{ srcds_game_dir }}/addons/TickrateEnabler64.so"
+
+    - name: Fix ownership of TickrateEnabler64.so.
+      ansible.builtin.file:
+        path: "{{ srcds_game_dir }}/addons/TickrateEnabler64.so"
+        owner: "{{ srcds_user }}"
+        group: "{{ srcds_user }}"
+        mode: "0755"
+
+    - name: Remove main.cpp (TickrateEnabler).
+      ansible.builtin.file:
+        path: /tmp/tickrate_main.cpp
+        state: absent

@@ -1,0 +1,20 @@
+---
+# sync local server content, recompile plugins and reload the map
+- name: "Deploy & recompile"
+  hosts: lan_servers
+  become: true
+  tasks:
+    - name: "Deploy {{ server.name }}"
+      ansible.builtin.include_role:
+        name: deploy_recompile
+      vars:
+        recompile_server_name:   "{{ server.name }}"
+        recompile_servers_dir:   "{{ servers_dir }}"
+        recompile_server_port:   "{{ server.port | default('27015') }}"
+        recompile_rcon_password: "{{ server.rcon_password }}"
+        recompile_default_map:   "{{ server.server_default_map }}"
+        recompile_fastdl_prefix: "{{ server.nginx_fastdl_prefix }}"
+      loop: "{{ servers_list }}"
+      loop_control:
+        loop_var: server
+        label: "{{ server.name }}"

@@ -1,0 +1,13 @@
+---
+# Reload the map via rcon (sm plugins refresh can break the server).
+- name: Change map to reload plugins via rcon_cli.
+  ansible.builtin.command:
+    cmd: >
+      /usr/local/bin/rcon-cli
+      --host 127.0.0.1
+      --port {{ recompile_server_port }}
+      --password "{{ recompile_rcon_password }}"
+      "sm_map {{ recompile_default_map }}"
+  become: true
+  become_user: steam
+  ignore_errors: true

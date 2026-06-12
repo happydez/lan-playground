@@ -1,0 +1,71 @@
+version: '3'
+
+vars:
+  CONTROLNODE_IP: "192.168.128.64"
+  LAN_IP: "192.168.128.32"
+  SSH_OPTS: "-i files/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+  SSH_CONTROLNODE: "ssh {{.SSH_OPTS}} vagrant@{{.CONTROLNODE_IP}}"
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  gen-key:
+    desc: "Generate SSH id_rsa key without passphrase into ./files directory (only if missing)"
+    cmds:
+      - cmd: mkdir files
+        ignore_error: true
+      - ssh-keygen -t rsa -b 2048 -f files/id_rsa -N "" -q
+    status:
+      - test -f files/id_rsa
+      - test -f files/id_rsa.pub
+    silent: true
+
+  up:
+    desc: "Start all virtual machines"
+    deps: [gen-key]
+    cmds:
+      - vagrant up
+
+  destroy:
+    desc: "Destroy all virtual machines without confirmation"
+    cmds:
+      - vagrant destroy -f
+
+  halt:
+    desc: "Gracefully stop all virtual machines"
+    cmds:
+      - vagrant halt
+
+  status:
+    desc: "Show the current status of all virtual machines"
+    cmds:
+      - vagrant status
+
+  ping:
+    desc: "Ansible ping all lan_servers from controlnode"
+    cmds:
+      - "{{.SSH_CONTROLNODE}} 'cd ansible && ansible-playbook playbooks/ping.yml'"
+  
+  ansible-deps:
+    desc: "Install ansible collections on the controlnode"
+    cmds:
+      - "{{.SSH_CONTROLNODE}} 'cd ansible && ansible-galaxy collection install -r requirements.yml'"
+
+  site:
+    desc: "Install ansible deps, then run full site.yml from controlnode"
+    deps: [ansible-deps]
+    cmds:
+      - "{{.SSH_CONTROLNODE}} 'cd ansible && ansible-playbook playbooks/site.yml'"
+
+  site-check:
+    desc: "Dry-run site.yml (--check --diff)"
+    cmds:
+      - "{{.SSH_CONTROLNODE}} 'cd ansible && ansible-playbook playbooks/site.yml --check --diff'"
+
+  deploy:
+    desc: "run site.yml with the deploy tag (sync content + recompile + map reload)"
+    cmds:
+      - "{{.SSH_CONTROLNODE}} 'cd ansible && ansible-playbook playbooks/site.yml --tags deploy'"

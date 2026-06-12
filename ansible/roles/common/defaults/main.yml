@@ -1,0 +1,34 @@
+---
+# Steam user that owns SteamCMD and all game servers.
+common_steam_user: steam
+common_steam_home: /home/steam
+
+common_apt_cache_valid_time: 3600
+
+# rcon-cli (https://github.com/itzg/rcon-cli)
+common_rcon_version: "1.7.5"
+common_rcon_url: "https://github.com/itzg/rcon-cli/releases/download/{{ common_rcon_version }}/rcon-cli_{{ common_rcon_version }}_linux_amd64.tar.gz"
+
+# CPU governor for srcds latency
+common_cpu_governor: performance
+
+# journald limits
+common_journald_max_use: "500M"
+common_journald_max_retention: "1month"
+
+# Docker
+common_docker_enabled: true
+docker_users:
+  - "{{ common_steam_user }}"
+  - "{{ ansible_user }}"
+
+# Adminer web panel
+common_adminer_enabled: true
+common_adminer_version: "4.17.1"
+common_adminer_filename: "srcds_db.php"
+
+# Package lists are OS-specific and live in vars/<distro>-<version>.yml.
+# Override them here (or in group_vars) only if you need to pin your own set:
+# common_base_packages: []
+# common_srcds_runtime_packages: []
+# common_build_packages: []
