@@ -22,7 +22,7 @@ smripext_url: "https://github.com/ErikMinekus/sm-ripext/releases/download/1.3.2/
 connect_url: "https://builds.limetech.io/files/connect-1.4.0-git103-e9cfdd5-linux.zip"
 geolite_url: "https://git.io/GeoLite2-City.mmdb"
 srcwrfloppy_url: "https://github.com/srcwr/srcwrfloppy/releases/download/v4.0.0/srcwrfloppy-v4.0.0.zip"
-clipsparser_url: "https://github.com/happydez/clipsparser/releases/download/v1.1.0/clipsparser-sm1.12-ubuntu22.zip"
+clipsparser_url: "https://github.com/happydez/clipsparser/releases/download/v1.2.0/clipsparser-sm1.12-ubuntu22.zip"
 
 # Workspace (cleaned at end)
 srcds_work_dir: "/tmp/srcds-build"
